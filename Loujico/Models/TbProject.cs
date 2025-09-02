@@ -10,8 +10,10 @@ public partial class TbProject
     public string Title { get; set; } = null!;
 
     public string? ProjectDescription { get; set; }
+    public string? ProjectType { get; set; }
 
     public int CustomerId { get; set; }
+    public int Progress { get; set; }
 
     public DateOnly StartDate { get; set; }
 

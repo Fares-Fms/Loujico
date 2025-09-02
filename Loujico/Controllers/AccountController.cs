@@ -21,8 +21,77 @@ namespace Loujico.Controllers
             userManager = manager;
 
         }
+        [HttpPost("LogIn")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<string>>> LogIn([FromForm] LogInModel model)
+        {
+             ApiResponse<string> response = new ApiResponse<string>();
 
-               [HttpPost("Register")]
+            if (!ModelState.IsValid)//
+            {
+                return BadRequest(new
+                {
+                    Status = 400,
+                    Message = "Invalid input data",
+                    Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
+            }
+
+            var user = await userManager.FindByEmailAsync(model.email);
+            if (user == null || !await userManager.CheckPasswordAsync(user, model.Password))
+            {
+               
+                return NotFound(new ApiResponse<String>
+                {
+                    Data = "Not Found",
+                    Message = "خطأ في البريد الإلكتروني أو كلمة المرور",
+                    Success = false
+                    
+                });
+            }
+            if (user.IsDeleted == true)
+            {
+                return NotFound(new ApiResponse<String>
+                {
+                    Data = "Not Found",
+                    Message = "المستخدم محذوف",
+                    Success = false
+
+                });
+            }
+            var roles = await userManager.GetRolesAsync(user);
+            if (roles.Contains("Admin"))
+            {
+                user.LastVisit = DateTime.Now;
+                await userManager.UpdateAsync(user);
+                return Ok(new ApiResponse<String>
+                {
+                    Data = await GenerateToken(user),
+                    Message = "Welcome Admin",
+                    Success = true,
+                    IsAdmin= true
+
+                });
+            
+            }
+            else
+            {
+                user.LastVisit = DateTime.Now;
+                await userManager.UpdateAsync(user);
+                return Ok(new ApiResponse<String>
+                {
+                    Data = await GenerateToken(user),
+                    Message = $"Welcome {user.UserName} ",
+                    Success = true,
+                    IsAdmin = false
+
+                });
+
+            }
+         
+          
+        }
+        [HttpPost("Register")]
             [AllowAnonymous]
             public async Task<IActionResult> Register([FromForm] Register model)
             {
