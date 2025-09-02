@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Loujico.Controllers
 {
+   
     [Route("api/[controller]")]
     [ApiController]
     public class EmpController : ControllerBase
@@ -50,6 +51,11 @@ namespace Loujico.Controllers
 
                 });
             }
+        }
+        [HttpDelete("DeleteEmp")]
+        public async Task<ActionResult<ApiResponse<string>>> DeleteEmp(int id)
+        {
+
         }
     }
 }
