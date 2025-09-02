@@ -27,7 +27,7 @@ namespace Loujico.Controllers
             public async Task<IActionResult> Register([FromForm] Register model)
             {
                 // التحقق من صحة النموذج
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid)//
                 {
                     return BadRequest(new
                     {
