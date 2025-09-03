@@ -1,3 +1,4 @@
+using Loujico.BL;
 using Loujico.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +14,7 @@ namespace Loujico
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddScoped<IEmployees,ClsEmployees>();
             builder.Services.AddDbContext<CompanySystemContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")),
         ServiceLifetime.Scoped);

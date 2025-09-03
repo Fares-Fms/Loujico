@@ -11,11 +11,12 @@ namespace Loujico.Controllers
     public class EmpController : ControllerBase
     {
         CompanySystemContext CTX;
-        public EmpController(CompanySystemContext cTX)
+        IEmployees ClsEmployees;
+        public EmpController(CompanySystemContext cTX, IEmployees clsEmployees)
         {
 
             CTX = cTX;
-
+            ClsEmployees = clsEmployees;
         }
         [HttpPost("AddEmp")]
         public async Task<ActionResult<ApiResponse<string>>> AddEmp([FromForm] TbEmployee emp)
@@ -52,10 +53,45 @@ namespace Loujico.Controllers
                 });
             }
         }
-        [HttpDelete("DeleteEmp")]
-        public async Task<ActionResult<ApiResponse<string>>> DeleteEmp(int id)
+        [HttpDelete("GetAllEmployees")]
+        public async Task<ActionResult<ApiResponse<List<TbEmployee>>>> GetAllEmployees()
         {
+            try
+            {
 
+                return Ok(new ApiResponse<List<TbEmployee>>
+                {
+                    Data = ClsEmployees.GetAllEmployees()
+                });
+            }
+            catch
+            {
+                return Ok(new ApiResponse<List<TbEmployee>>
+                {
+                    Message="Error"
+                });
+
+            }
+        }
+        [HttpDelete("Delete")]
+        public async Task<ActionResult<ApiResponse<string>>> Delete(int id)
+        {
+            try
+            {
+                ClsEmployees.Delete(id);
+                return Ok(new ApiResponse<String>
+                {
+                    Data = "done"
+                });
+            }
+            catch 
+            {
+                return Ok(new ApiResponse<String>
+                {
+                    Data = "Error"
+                });
+                
+            }
         }
     }
 }
