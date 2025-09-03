@@ -56,7 +56,7 @@ namespace Loujico.Controllers
         [HttpDelete("GetAllEmployees")]
         public async Task<ActionResult<ApiResponse<List<TbEmployee>>>> GetAllEmployees()
         {
-<<<<<<< Updated upstream
+
             try
             {
 
@@ -93,9 +93,9 @@ namespace Loujico.Controllers
                 });
                 
             }
-=======
+
             return Ok();
->>>>>>> Stashed changes
+
         }
     }
 }

@@ -4,42 +4,45 @@ namespace Loujico.BL
 {
     public interface IEmployees
     {
-        public List<TbEmployee> GetAllEmployees();
-        public TbEmployee GetEmployeeById(int id);
-        public bool AddEmp(TbEmployee employee);
-        public bool Delete(int id);
+        public Task<List<TbEmployee>> GetAllEmployeesAsync(int id);
+        public Task<TbEmployee> GetEmployeeByIdAsync(int id);
+        public Task<bool> AddEmpAsync(TbEmployee employee);
+        public Task<bool> DeleteAsync(int id);
     }
-    public class ClsEmployees: IEmployees
-    {
 
+    public class ClsEmployees : IEmployees
+    {
         CompanySystemContext CTX;
+        const int pageSize = 10;
         public ClsEmployees(CompanySystemContext companySystemContext)
         {
-
             CTX = companySystemContext;
-
         }
-        public List<TbEmployee> GetAllEmployees()
+
+        public async Task<List<TbEmployee>> GetAllEmployeesAsync(int id)
         {
             try
             {
-                var lstEmployees = CTX.TbEmployees.Where(e => !e.IsDeleted).ToList();
+                var lstEmployees = await CTX.TbEmployees
+                                            .Where(e => !e.IsDeleted).Skip((id - 1) * pageSize)
+                                            .Take(pageSize)
+                                            .ToListAsync();
                 return lstEmployees;
             }
             catch
-            { 
+            {
                 return new List<TbEmployee>();
             }
         }
-        public bool AddEmp(TbEmployee employee)
-        {
 
+        public async Task<bool> AddEmpAsync(TbEmployee employee)
+        {
             try
             {
                 employee.CreatedAt = DateTime.Now;
                 employee.IsPresent = true;
-                CTX.TbEmployees.Add(employee);                
-                CTX.SaveChanges(); 
+                await CTX.TbEmployees.AddAsync(employee);
+                await CTX.SaveChangesAsync();
                 return true;
             }
             catch
@@ -47,15 +50,17 @@ namespace Loujico.BL
                 return false;
             }
         }
-        public bool Delete(int id)
+
+        public async Task<bool> DeleteAsync(int id)
         {
             try
             {
-                var employee = CTX.TbEmployees.FirstOrDefault(e => e.Id == id);
+                var employee = await CTX.TbEmployees.FirstOrDefaultAsync(e => e.Id == id);
                 if (employee == null)
                     return false;
+
                 employee.IsDeleted = true;
-                CTX.SaveChanges();
+                await CTX.SaveChangesAsync();
                 return true;
             }
             catch
@@ -63,15 +68,14 @@ namespace Loujico.BL
                 return false;
             }
         }
-       
-        public TbEmployee GetEmployeeById(int id)
-     {
-           return CTX.TbEmployees
-                    .Include(e => e.TbProjectsEmployees)  
-                    .Include(e => e.TbProductsEmployees)  
-                    .FirstOrDefault(e => e.Id == id);
-       }
 
+        public async Task<TbEmployee> GetEmployeeByIdAsync(int id)
+        {
+            return await CTX.TbEmployees
+                            .Include(e => e.TbProjectsEmployees)
+                            .Include(e => e.TbProductsEmployees)
+                            .FirstOrDefaultAsync(e => e.Id == id);
+        }
     }
 }
 
