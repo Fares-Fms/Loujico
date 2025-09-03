@@ -4,8 +4,8 @@ namespace Loujico.BL
 {
     public interface IHistory
     {
-        public Task<List<TbHistory>> GetAllHistoryAsync(int  id ,int RecordId, string TableName);
-        public Task<TbHistory> GetHistoryByIdAsync(int id);
+        public Task<List<TbHistory>> GetAllHistory(int  id ,int RecordId, string TableName);
+        public Task<TbHistory> GetHistoryById(int id);
     }
     public class ClsHistory : IHistory
     {
@@ -16,7 +16,7 @@ namespace Loujico.BL
             CTX = companySystemContext;
         }
 
-        public async Task<List<TbHistory>> GetAllHistoryAsync(int id, int RecordId, string TableName)
+        public async Task<List<TbHistory>> GetAllHistory(int id, int RecordId, string TableName)
         {
             try
             {
@@ -32,7 +32,7 @@ namespace Loujico.BL
                 return new List<TbHistory>();
             }
         }
-        public async Task<TbHistory> GetHistoryByIdAsync(int id)
+        public async Task<TbHistory> GetHistoryById(int id)
         {
             return await CTX.TbHistories
                             .FirstOrDefaultAsync(h => h.Id == id);

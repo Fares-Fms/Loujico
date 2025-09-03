@@ -7,7 +7,7 @@ namespace Loujico.BL
 {
     public interface Ilog
     {
-        public  Task<string> Add(String? Userid, string ActionType, string Action);
+        public  Task<string> Add( string ActionType, string Action, String? Userid);
         public  Task<List<TbLog>> Paginition(int id);
         
 
@@ -23,7 +23,7 @@ namespace Loujico.BL
         {
             CTX = companySystemContext;
         }
-        public async Task<string> Add(String? Userid, string ActionType, string Action)
+        public async Task<string> Add( string ActionType, string Action, String? Userid)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace Loujico.BL
         public async Task<List<TbLog>> Paginition(int id){
             try
             {
-                var  LstCars = await CTX.TbLogs.Where(a => a.TimeStamp >= DateTime.Now.AddMonths(-3)).Skip((id - 1) * pageSize)
+                var  LstCars = await CTX.TbLogs.Where(a => a.TimeStamp >= DateTime.Now.AddMonths(-3) ).Skip((id - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
                 return LstCars;

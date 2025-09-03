@@ -3,21 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using System;
 namespace Loujico.BL
 {
-<<<<<<< HEAD
+
     public interface IProject {
-        public TbProject GetById(int id);
-        public List<TbProject> Pagintion(int id);
+        public Task <TbProject> GetById(int id);
+        public Task<List<TbProject>> Pagintion(int id);
         public Task<bool> Add(TbProject project);
         public Task<bool> Delete(int id);
-    
-=======
-    public interface IProject
-    {
-        public Task<TbProject> GetByIdAsync(int id);
-        public Task<List<TbProject>> PagintionAsync(int id);
-        public Task<bool> AddAsync(TbProject project);
-        public Task<bool> DeleteAsync(int id);
->>>>>>> backupoub
+
+
     }
 
     public class ClsProject : IProject
@@ -30,7 +23,7 @@ namespace Loujico.BL
             CTX = companySystemContext;
         }
 
-        public async Task<TbProject> GetByIdAsync(int id)
+        public async Task<TbProject> GetById(int id)
         {
             var project = await CTX.TbProjects.FindAsync(id);
             if (project == null)
@@ -40,7 +33,7 @@ namespace Loujico.BL
             return project;
         }
 
-        public async Task<List<TbProject>> PagintionAsync(int id)
+        public async Task<List<TbProject>> Pagintion(int id)
         {
             try
             {
@@ -57,55 +50,46 @@ namespace Loujico.BL
                 return new List<TbProject>();
             }
         }
-<<<<<<< HEAD
-        public async Task< bool> Add(TbProject project)
-        {
-=======
->>>>>>> backupoub
 
-        public async Task<bool> AddAsync(TbProject project)
+        public async Task<bool> Add(TbProject project)
         {
-            try
-            {
-                project.CreatedAt = DateTime.Now;
-<<<<<<< HEAD
-                CTX.TbProjects.AddAsync(project);
-                CTX.SaveChangesAsync();
-=======
+
+                try
+                {
+                    project.CreatedAt = DateTime.Now;
+                    CTX.TbProjects.AddAsync(project);
+                    CTX.SaveChangesAsync();
+
                 await CTX.TbProjects.AddAsync(project);
                 await CTX.SaveChangesAsync();
->>>>>>> backupoub
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-<<<<<<< HEAD
-        public async Task<bool> Delete(int id)
-        {
-=======
->>>>>>> backupoub
 
-        public async Task<bool> DeleteAsync(int id)
-        {
-            try
-            {
-                var project = await CTX.TbProjects.FindAsync(id);
-                if (project == null)
+                    return true;
+                }
+                catch
+                {
                     return false;
+                }
+            }
 
-                project.UpdatedAt = DateTime.Now;
-                project.IsDeleted = true;
-                CTX.Entry(project).State = EntityState.Modified;
-                await CTX.SaveChangesAsync();
-                return true;
-            }
-            catch
+            public async Task<bool> Delete(int id)
             {
-                return false;
+
+                    try
+                    {
+                        var project = await CTX.TbProjects.FindAsync(id);
+                        if (project == null)
+                            return false;
+
+                        project.UpdatedAt = DateTime.Now;
+                        project.IsDeleted = true;
+                        CTX.Entry(project).State = EntityState.Modified;
+                        await CTX.SaveChangesAsync();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
             }
-        }
-    }
-}
+        } 

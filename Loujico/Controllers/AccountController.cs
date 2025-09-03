@@ -68,7 +68,7 @@ namespace Loujico.Controllers
             {
                 user.LastVisit = DateTime.Now;
                 await userManager.UpdateAsync(user);
-                await ClsLogs.Add(user.Id, "LogIn", $"{user.UserName} has logged in");
+                await ClsLogs.Add("LogIn", $"{user.UserName} has logged in", user.Id);
                 return Ok(new ApiResponse<String>
                 {
                     Data = await GenerateToken(user),
@@ -137,7 +137,7 @@ namespace Loujico.Controllers
                     // إنشاء الحساب
                     var result = await userManager.CreateAsync(user, model.Password);
                 var userid = userManager.GetUserId(User);
-                await ClsLogs.Add(userid, "LogIn", $"{user.UserName} has been Register in");
+                await ClsLogs.Add( "LogIn", $"{user.UserName} has been Register in",userid);
 
                 if (!result.Succeeded)
                     {

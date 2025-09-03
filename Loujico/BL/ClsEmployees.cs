@@ -1,25 +1,32 @@
 ﻿using Loujico.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 namespace Loujico.BL
 {
     public interface IEmployees
     {
-        public Task<List<TbEmployee>> GetAllEmployeesAsync(int id);
-        public Task<TbEmployee> GetEmployeeByIdAsync(int id);
-        public Task<bool> AddEmpAsync(TbEmployee employee);
-        public Task<bool> DeleteAsync(int id);
+        public Task<List<TbEmployee>> GetAllEmployees(int id);
+        public Task<List<TbHistory>> LstEditHistory(int Pageid, int id);
+
+        public Task<TbEmployee> GetEmployeeById(int id);
+        public Task<bool> Add(TbEmployee employee);
+        public Task<bool> Delete(int id);
     }
 
     public class ClsEmployees : IEmployees
     {
         CompanySystemContext CTX;
+        Ilog ClsLogs;
+        IHistory ClsHistory;
         const int pageSize = 10;
-        public ClsEmployees(CompanySystemContext companySystemContext)
+        public ClsEmployees(CompanySystemContext companySystemContext, Ilog clsLogs,IHistory history)
         {
+            ClsHistory = history;
             CTX = companySystemContext;
+            ClsLogs = clsLogs;
         }
 
-        public async Task<List<TbEmployee>> GetAllEmployeesAsync(int id)
+        public async Task<List<TbEmployee>> GetAllEmployees(int id)
         {
             try
             {
@@ -29,13 +36,17 @@ namespace Loujico.BL
                                             .ToListAsync();
                 return lstEmployees;
             }
-            catch
+            catch (Exception ex)
             {
+
+                await ClsLogs.Add("Error", ex.Message,null);
                 return new List<TbEmployee>();
+
+
             }
         }
 
-        public async Task<bool> AddEmpAsync(TbEmployee employee)
+        public async Task<bool> Add(TbEmployee employee)
         {
             try
             {
@@ -45,13 +56,30 @@ namespace Loujico.BL
                 await CTX.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+
+                await ClsLogs.Add("Error", ex.Message, null);
+                return false;
+            }
+        }    public async Task<bool> Edit(TbEmployee employee)
+        {
+            try
+            {
+                employee.UpdatedAt = DateTime.Now;
+                CTX.Entry(employee).State = EntityState.Modified;
+                await CTX.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                await ClsLogs.Add("Error", ex.Message, null);
                 return false;
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> Delete(int id)
         {
             try
             {
@@ -60,21 +88,57 @@ namespace Loujico.BL
                     return false;
 
                 employee.IsDeleted = true;
+                CTX.Entry(employee).State = EntityState.Modified; // استخدم هي للتعديل 
                 await CTX.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+
+                await ClsLogs.Add("Error", ex.Message, null);
                 return false;
             }
         }
 
-        public async Task<TbEmployee> GetEmployeeByIdAsync(int id)
+        public async Task<TbEmployee> GetEmployeeById(int id)
         {
-            return await CTX.TbEmployees
-                            .Include(e => e.TbProjectsEmployees)
-                            .Include(e => e.TbProductsEmployees)
-                            .FirstOrDefaultAsync(e => e.Id == id);
+            try
+            {
+                return await CTX.TbEmployees.Where(a=>a.IsDeleted==false)
+                                .Include(e => e.TbProjectsEmployees)
+                                .Include(e => e.TbProductsEmployees)
+                                .FirstOrDefaultAsync(e => e.Id == id);
+            }
+            catch (Exception ex)
+            {
+
+                await ClsLogs.Add("Error", ex.Message, null);
+                return new TbEmployee();
+            }
+        }
+
+        public async Task<List<TbHistory>> LstEditHistory(int Pageid,int id)
+        {
+            try
+            {
+               
+             var LstEmployee=  await ClsHistory.GetAllHistory(Pageid, id, "TbEmployees");
+                if (LstEmployee!=null)
+                {
+                    return new List<TbHistory>();
+
+                }
+                else
+                {
+                    return LstEmployee;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                await ClsLogs.Add("Error", ex.Message, null);
+                return new List<TbHistory>();
+            }
         }
     }
 }
