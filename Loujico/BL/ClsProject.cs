@@ -8,8 +8,8 @@ namespace Loujico.BL
     public interface IProject {
         public TbProject GetById(int id);
         public List<TbProject> Pagintion(int id);
-        public bool Add(TbProject project);
-        public bool Delete(int id);
+        public Task<bool> Add(TbProject project);
+        public Task<bool> Delete(int id);
     
     }
 
@@ -53,15 +53,15 @@ namespace Loujico.BL
                 return new List<TbProject>();
             }
         }
-        public bool Add(TbProject project)
+        public async Task< bool> Add(TbProject project)
         {
 
             try
             {
                 
                 project.CreatedAt = DateTime.Now;
-                CTX.TbProjects.Add(project);
-                CTX.SaveChanges();
+                CTX.TbProjects.AddAsync(project);
+                CTX.SaveChangesAsync();
                 return true;
             }
             catch
@@ -69,7 +69,7 @@ namespace Loujico.BL
                 return false;
             }
         }
-        public bool Delete(int id)
+        public async Task<bool> Delete(int id)
         {
 
             try

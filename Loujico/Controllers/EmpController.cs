@@ -54,9 +54,9 @@ namespace Loujico.Controllers
             }
         }
         [HttpDelete("GetAllEmployees")]
-        public async Task<ActionResult<ApiResponse<List<TbEmployee>>>> GetAllEmployees()
+        public ActionResult<ApiResponse<List<TbEmployee>>> GetAllEmployees()
         {
-<<<<<<< Updated upstream
+
             try
             {
 
@@ -75,7 +75,7 @@ namespace Loujico.Controllers
             }
         }
         [HttpDelete("Delete")]
-        public async Task<ActionResult<ApiResponse<string>>> Delete(int id)
+        public ActionResult<ApiResponse<string>> Delete(int id)
         {
             try
             {
@@ -93,9 +93,9 @@ namespace Loujico.Controllers
                 });
                 
             }
-=======
+
             return Ok();
->>>>>>> Stashed changes
+
         }
     }
 }

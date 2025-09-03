@@ -63,6 +63,7 @@ namespace Loujico
             builder.Services.AddSwaggerGen();
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<IProject,ClsProject>();
+            builder.Services.AddScoped<Ilog,ClsLogs>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
