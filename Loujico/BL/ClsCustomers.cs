@@ -4,49 +4,50 @@ namespace Loujico.BL
 {
     public interface ICustomers
     {
-        public List<TbCustomer> GetAllCustomers();
-        public TbCustomer GetCustomerById(int id);
-        public bool AddCustomer(TbCustomer customer);
-        public bool Delete(int id);
+        public Task<List<TbCustomer>> GetAllCustomersAsync(int id);
+        public Task<TbCustomer?> GetCustomerByIdAsync(int id);
+        public Task<bool> AddCustomerAsync(TbCustomer customer);
+        public Task<bool> DeleteAsync(int id);
     }
-
     public class ClsCustomers : ICustomers
     {
         CompanySystemContext CTX;
-
+        const int pageSize = 10;
         public ClsCustomers(CompanySystemContext companySystemContext)
         {
             CTX = companySystemContext;
         }
 
-        public List<TbCustomer> GetAllCustomers()
+        public async Task<List<TbCustomer>> GetAllCustomersAsync(int id)
         {
             try
             {
-                return CTX.TbCustomers.Where(x => !x.IsDeleted).ToList();
+                return await CTX.TbCustomers
+                                .Where(x => !x.IsDeleted).Skip((id - 1) * pageSize)
+                                .Take(pageSize)
+                                .ToListAsync();
             }
             catch
             {
                 return new List<TbCustomer>();
             }
         }
-
-        public TbCustomer GetCustomerById(int id)
+        public async Task<TbCustomer?> GetCustomerByIdAsync(int id)
         {
-            return CTX.TbCustomers
-                      .Include(c => c.TbCustomersProducts)
-                      .Include(c => c.TbProjects)
-                      .Include(c => c.TbInvoices)
-                      .FirstOrDefault(c => c.Id == id && !c.IsDeleted);
+            return await CTX.TbCustomers
+                            .Include(c => c.TbCustomersProducts)
+                            .Include(c => c.TbProjects)
+                            .Include(c => c.TbInvoices)
+                            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         }
-        public bool AddCustomer(TbCustomer customer)
+        public async Task<bool> AddCustomerAsync(TbCustomer customer)
         {
             try
             {
                 customer.CreatedAt = DateTime.UtcNow;
                 customer.IsDeleted = false;
-                CTX.TbCustomers.Add(customer);
-                CTX.SaveChanges();
+                await CTX.TbCustomers.AddAsync(customer);
+                await CTX.SaveChangesAsync();
                 return true;
             }
             catch
@@ -54,17 +55,16 @@ namespace Loujico.BL
                 return false;
             }
         }
-
-        public bool Delete(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             try
             {
-                var customer = CTX.TbCustomers.FirstOrDefault(c => c.Id == id);
+                var customer = await CTX.TbCustomers.FirstOrDefaultAsync(c => c.Id == id);
                 if (customer == null)
                     return false;
 
                 customer.IsDeleted = true;
-                CTX.SaveChanges();
+                await CTX.SaveChangesAsync();
                 return true;
             }
             catch

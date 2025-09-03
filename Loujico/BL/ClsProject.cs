@@ -1,67 +1,80 @@
 ﻿using Loujico.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
-using static Loujico.BL.ClsEmployees;
-
 namespace Loujico.BL
 {
+<<<<<<< HEAD
     public interface IProject {
         public TbProject GetById(int id);
         public List<TbProject> Pagintion(int id);
         public Task<bool> Add(TbProject project);
         public Task<bool> Delete(int id);
     
+=======
+    public interface IProject
+    {
+        public Task<TbProject> GetByIdAsync(int id);
+        public Task<List<TbProject>> PagintionAsync(int id);
+        public Task<bool> AddAsync(TbProject project);
+        public Task<bool> DeleteAsync(int id);
+>>>>>>> backupoub
     }
 
-    public class ClsProject : IProject 
+    public class ClsProject : IProject
     {
         CompanySystemContext CTX;
         const int pageSize = 10;
+
         public ClsProject(CompanySystemContext companySystemContext)
         {
-
             CTX = companySystemContext;
-
         }
-        public TbProject GetById(int id)
+
+        public async Task<TbProject> GetByIdAsync(int id)
         {
-         
-            TbProject project = CTX.TbProjects.Find(id);
+            var project = await CTX.TbProjects.FindAsync(id);
             if (project == null)
             {
                 return new TbProject();
             }
             return project;
         }
-            public List<TbProject> Pagintion(int id)
+
+        public async Task<List<TbProject>> PagintionAsync(int id)
         {
             try
             {
-               
-
-
-                var LstCars = CTX.TbProjects.Where(a => a.IsDeleted != true).Skip((id - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-
+                var LstCars = await CTX.TbProjects
+                                       .Where(a => a.IsDeleted != true)
+                                       .Skip((id - 1) * pageSize)
+                                       .Take(pageSize)
+                                       .ToListAsync();
 
                 return LstCars;
             }
-
             catch
             {
                 return new List<TbProject>();
             }
         }
+<<<<<<< HEAD
         public async Task< bool> Add(TbProject project)
         {
+=======
+>>>>>>> backupoub
 
+        public async Task<bool> AddAsync(TbProject project)
+        {
             try
             {
-                
                 project.CreatedAt = DateTime.Now;
+<<<<<<< HEAD
                 CTX.TbProjects.AddAsync(project);
                 CTX.SaveChangesAsync();
+=======
+                await CTX.TbProjects.AddAsync(project);
+                await CTX.SaveChangesAsync();
+>>>>>>> backupoub
                 return true;
             }
             catch
@@ -69,18 +82,24 @@ namespace Loujico.BL
                 return false;
             }
         }
+<<<<<<< HEAD
         public async Task<bool> Delete(int id)
         {
+=======
+>>>>>>> backupoub
 
+        public async Task<bool> DeleteAsync(int id)
+        {
             try
             {
-                TbProject project = CTX.TbProjects.Find(id);
+                var project = await CTX.TbProjects.FindAsync(id);
                 if (project == null)
                     return false;
+
                 project.UpdatedAt = DateTime.Now;
-                project.IsDeleted=true;
+                project.IsDeleted = true;
                 CTX.Entry(project).State = EntityState.Modified;
-                CTX.SaveChanges();
+                await CTX.SaveChangesAsync();
                 return true;
             }
             catch
@@ -88,6 +107,5 @@ namespace Loujico.BL
                 return false;
             }
         }
-    
     }
 }
