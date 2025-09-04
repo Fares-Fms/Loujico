@@ -1,4 +1,5 @@
-﻿using Loujico.Models;
+﻿using Loujico.BL;
+using Loujico.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,21 +14,93 @@ namespace Loujico.Controllers
     public class AccountController : Controller
     {
         private readonly IConfiguration configuration;
+        private readonly Ilog ClsLogs;
         private readonly UserManager<ApplicationUser> userManager;
-        public AccountController(IConfiguration _configuration,UserManager<ApplicationUser> manager)
+
+        public AccountController(IConfiguration _configuration,UserManager<ApplicationUser> manager,Ilog ilog)
         {
 
            configuration = _configuration;
             userManager = manager;
+            ClsLogs = ilog;
 
         }
+        [HttpPost("LogIn")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<string>>> LogIn([FromForm] LogInModel model)
+        {
+             ApiResponse<string> response = new ApiResponse<string>();
 
-               [HttpPost("Register")]
-            [AllowAnonymous]
-            public async Task<IActionResult> Register([FromForm] Register model)
+            if (!ModelState.IsValid)//
+            {
+                return BadRequest(new
+                {
+                    Status = 400,
+                    Message = "Invalid input data",
+                    Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
+            }
+
+            var user = await userManager.FindByEmailAsync(model.email);
+            if (user == null || !await userManager.CheckPasswordAsync(user, model.Password))
+            {
+               
+                return NotFound(new ApiResponse<String>
+                {
+                    Data = "Not Found",
+                    Message = "خطأ في البريد الإلكتروني أو كلمة المرور",
+                    Success = false
+                    
+                });
+            }
+            if (user.IsDeleted == true)
+            {
+                return NotFound(new ApiResponse<String>
+                {
+                    Data = "Not Found",
+                    Message = "المستخدم محذوف",
+                    Success = false
+
+                });
+            }
+            var roles = await userManager.GetRolesAsync(user);
+            if (roles.Contains("Admin"))
+            {
+                user.LastVisit = DateTime.Now;
+                await userManager.UpdateAsync(user);
+                await ClsLogs.Add("LogIn", $"{user.UserName} has logged in", user.Id);
+                return Ok(new ApiResponse<String>
+                {
+                    Data = await GenerateToken(user),
+                    Message = "Welcome Admin",
+                    Success = true,
+                    IsAdmin= true
+
+                });
+            }
+            else
+            {
+                user.LastVisit = DateTime.Now;
+                await userManager.UpdateAsync(user);
+                return Ok(new ApiResponse<String>
+                {
+                    Data = await GenerateToken(user),
+                    Message = $"Welcome {user.UserName} ",
+                    Success = true,
+                    IsAdmin = false
+
+                });
+
+            }
+         
+          
+        }
+        [HttpPost("Register")]
+            [Authorize(Roles ="Admin")]
+            public async Task<ActionResult<ApiResponse<string>>> Register([FromForm] Register model)
             {
                 // التحقق من صحة النموذج
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid)//
                 {
                     return BadRequest(new
                     {
@@ -63,8 +136,10 @@ namespace Loujico.Controllers
                 {
                     // إنشاء الحساب
                     var result = await userManager.CreateAsync(user, model.Password);
+                var userid = userManager.GetUserId(User);
+                await ClsLogs.Add( "LogIn", $"{user.UserName} has been Register in",userid);
 
-                    if (!result.Succeeded)
+                if (!result.Succeeded)
                     {
                         return BadRequest(new
                         {
@@ -102,20 +177,19 @@ namespace Loujico.Controllers
                         },
                         Message = "User registered successfully"
                     });
+
                 }
                 catch (Exception ex)
                 {
-                // تسجيل الخطأ
-                /*   _logger.LogError(ex, "Error during user registration");
 
                    return StatusCode(500, new
                    {
-                       Status = 500,
-                       Message = "An error occurred while processing your request",
-                       DetailedError = _env.IsDevelopment() ? ex.Message : null
-                   });*/
-                return Ok();
-                }
+                       Status = 400,
+                       Message = "User creation failed",
+                       Errors = ex.Message
+                   });
+
+            }
             }
         private async Task<string> GenerateToken(ApplicationUser user)
         {

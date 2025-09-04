@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.ComponentModel.DataAnnotations;
 namespace Loujico.Models;
-
 public partial class TbInvoice
 {
     public int Id { get; set; }
@@ -35,3 +34,5 @@ public partial class TbInvoice
 
     public virtual TbProject? Project { get; set; }
 }
+
+
