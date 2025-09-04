@@ -44,7 +44,7 @@ namespace Loujico.BL
         {
             try
             {
-                customer.CreatedAt = DateTime.UtcNow;
+                customer.CreatedAt = DateTime.Now;
                 customer.IsDeleted = false;
                 await CTX.TbCustomers.AddAsync(customer);
                 await CTX.SaveChangesAsync();
