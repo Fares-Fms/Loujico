@@ -1,6 +1,7 @@
 ﻿using Loujico.BL;
 using Loujico.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Loujico.Controllers
@@ -12,11 +13,15 @@ namespace Loujico.Controllers
     {
         CompanySystemContext CTX;
         IEmployees ClsEmployees;
-        public EmpController(CompanySystemContext cTX, IEmployees clsEmployees)
+        Ilog ClsLogs;
+        UserManager<ApplicationUser> UserManager;
+        public EmpController(CompanySystemContext cTX, IEmployees clsEmployees, Ilog clsLogs, UserManager<ApplicationUser> userManager)
         {
 
             CTX = cTX;
             ClsEmployees = clsEmployees;
+            ClsLogs = clsLogs;
+            UserManager = userManager;
         }
         [HttpPost("AddEmp")]
         public async Task<ActionResult<ApiResponse<string>>> AddEmp([FromForm] TbEmployee emp)
@@ -25,8 +30,8 @@ namespace Loujico.Controllers
                 if (!ModelState.IsValid)
                 {
 
-                    return Ok(new ApiResponse<String> {
-                        Data="wronge",
+                    return BadRequest(new ApiResponse<String> {
+                    
                         Message= "wronge"
 
                     });
@@ -43,18 +48,20 @@ namespace Loujico.Controllers
 
                 });
             }
-            catch 
+            catch (Exception ex)
             {
-                return Ok(new ApiResponse<String>
+                await ClsLogs.Add("Error", ex.Message, null);
+                return BadRequest(new ApiResponse<List<TbEmployee>>
                 {
-                    Data = "wronge",
-                    Message = "wronge"
+                    Message = ex.Message,
 
                 });
             }
+
+
         }
-        [HttpDelete("GetAllEmployees")]
-        public async Task<ActionResult<ApiResponse<List<TbEmployee>>>> GetAllEmployees()
+        [HttpGet("GetAllEmployees/{id}")]
+        public async Task< ActionResult<ApiResponse<List<TbEmployee>>>> GetAllEmployees(int id)
         {
 
             try
@@ -62,14 +69,16 @@ namespace Loujico.Controllers
 
                 return Ok(new ApiResponse<List<TbEmployee>>
                 {
-                    Data = ClsEmployees.GetAllEmployees()
+                    Data = await  ClsEmployees.GetAllEmployees(id)
                 });
             }
-            catch
+            catch (Exception ex) 
             {
-                return Ok(new ApiResponse<List<TbEmployee>>
+                await ClsLogs.Add("Error", ex.Message, null);
+                return BadRequest( new ApiResponse<List<TbEmployee>>
                 {
-                    Message="Error"
+                    Message = ex.Message,
+
                 });
 
             }
@@ -79,22 +88,50 @@ namespace Loujico.Controllers
         {
             try
             {
-                ClsEmployees.Delete(id);
+                await ClsEmployees.Delete(id);
+                var userid = UserManager.GetUserId(User);
+                await ClsLogs.Add("CRUD", "Delete", userid);
                 return Ok(new ApiResponse<String>
                 {
                     Data = "done"
                 });
             }
-            catch 
+            catch (Exception ex)
             {
-                return Ok(new ApiResponse<String>
+                await ClsLogs.Add("Error",ex.Message , null);
+                return BadRequest(new ApiResponse<List<TbEmployee>>
                 {
-                    Data = "Error"
+                    Message = ex.Message,
+
                 });
-                
             }
 
-            return Ok();
+
+
+        }
+        [HttpGet("GetById/{id}")]
+        public async Task<ActionResult<ApiResponse<string>>> GetById(int id)
+        {
+            try
+            {
+              var Employee=  await ClsEmployees.GetEmployeeById(id);
+    
+                return Ok(new ApiResponse<TbEmployee>
+                {
+                    Data = Employee
+                });
+            }
+            catch (Exception ex)
+            {
+                await ClsLogs.Add("Error",ex.Message , null);
+                return BadRequest(new ApiResponse<List<TbEmployee>>
+                {
+                    Message = ex.Message,
+
+                });
+            }
+
+
 
         }
     }
